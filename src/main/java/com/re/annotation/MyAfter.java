@@ -3,10 +3,11 @@ package com.re.annotation;
 import java.lang.annotation.*;
 
 /**
- * 开启切面注解
+ * 自定义后置通知注解
  */
 @Documented
-@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface MyEnableAspect {
+@Target(ElementType.METHOD)
+public @interface MyAfter {
+    String value() default "";
 }
