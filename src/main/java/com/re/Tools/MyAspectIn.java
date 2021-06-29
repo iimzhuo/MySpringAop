@@ -7,14 +7,14 @@ import java.util.Map;
 /**
  * 自定义切面信息类
  */
-public class MyAspectInf {
+public class MyAspectIn {
     private String className;
 
     private String methodName;
 
     private String annatatedType;
     //用于存储目标类，和对应的切面信息
-    public static Map<String, List<MyAspectInf>> map=new HashMap<>();
+    public static Map<String, List<MyAspectIn>> map=new HashMap<>();
 
     public String getClassName() {
         return className;

@@ -1,6 +1,7 @@
 package com.re.config;
 
 import com.re.Tools.MyTools;
+import com.re.annotation.MyJoin;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.AnnotatedBeanDefinition;
 import org.springframework.beans.factory.config.BeanDefinition;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.type.AnnotationMetadata;
 
+import java.lang.reflect.Method;
 import java.util.Set;
 
 /**
@@ -24,7 +26,7 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
                 Set<String> annotationTypes = metadata.getAnnotationTypes();
                 for(String item:annotationTypes){
                     if(item.equals(MyTools.MyAspect)){   //如果上面标有切面注解
-
+                        doScan(beanDefinition);
                     }
                 }
             }
@@ -32,6 +34,12 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
     }
 
     public void doScan(BeanDefinition beanDefinition){
+        String className = beanDefinition.getBeanClassName();
+        Method[] methods = beanDefinition.getClass().getDeclaredMethods();
+        for(Method method:methods){
+            if(method.isAnnotationPresent(MyJoin.class)){  //如果method上面标注了自定义切入点注解
 
+            }
+        }
     }
 }
