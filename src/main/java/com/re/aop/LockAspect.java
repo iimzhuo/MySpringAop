@@ -1,7 +1,6 @@
 package com.re.aop;
 
-import com.re.annotation.MyAspect;
-import com.re.annotation.MyJoin;
+import com.re.annotation.*;
 import org.springframework.stereotype.Component;
 
 /**
@@ -12,4 +11,19 @@ import org.springframework.stereotype.Component;
 public class LockAspect {
     @MyJoin(value="com.re.service")
     public void MyJoins(){}
+
+    @MyBefore("MyJoins()")
+    public void MyBefore(){
+        System.out.println("before advice");
+    }
+
+    @MyAfter("MyJoins()")
+    public void MyAfter(){
+        System.out.println("after advice");
+    }
+
+    @MyAround("MyJoins()")
+    public void MyAround(){
+        System.out.println("around advice");
+    }
 }
