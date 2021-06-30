@@ -10,9 +10,11 @@ import org.springframework.beans.factory.config.BeanFactoryPostProcessor;
 import org.springframework.beans.factory.config.ConfigurableListableBeanFactory;
 import org.springframework.core.type.AnnotationMetadata;
 
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -57,18 +59,24 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
      */
     public void doScan(BeanDefinition beanDefinition){
         String className = beanDefinition.getBeanClassName();
-        Method[] methods = beanDefinition.getClass().getDeclaredMethods();
+        Class<?> aClass=null;
+        try {
+             aClass= Class.forName(className);
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+        Method[] methods = aClass.getDeclaredMethods();
         for(Method method:methods){
             if(method.isAnnotationPresent(MyJoin.class)){  //如果method上面标注了自定义切入点注解
                 Pointcut = method.getAnnotation(MyJoin.class).value();
-                PointMethodName=method.getName();
+                PointMethodName=method.getName()+"()";
                 break;
             }
         }
         for(Method method:methods){
             Annotation[] annotations = method.getDeclaredAnnotations();
             for(Annotation item:annotations){
-                Class<? extends Annotation> type = item.annotationType();
+                String type = item.annotationType().getName();
                 if(type.equals(MyTools.MyAfter)||type.equals(MyTools.MyAround)||type.equals(MyTools.MyBefore)){
                     doScan(className,method,item);
                 }
@@ -87,21 +95,47 @@ public class MyBeanFactoryPostProcessor implements BeanFactoryPostProcessor {
         for(Method method:methods){
             if(method.getName().equals("value")){
                 try {
-                    String value =(String)method.invoke(annotation.getClass().newInstance(), null);
-                    if(value.split(",")[0].equals(PointMethodName)){
-                        List<MyAspectIn> list = MyTools.map.get(PointMethodName);
-                        if(list==null) list=new ArrayList<>();
-                        MyAspectIn myAspectIn = new MyAspectIn();
-                        myAspectIn.setClassName(className);
-                        myAspectIn.setMethodName(adviceMethod.getName());
-                        myAspectIn.setAnnatatedType(annotation.annotationType().getName());
-                        MyTools.map.put(PointMethodName,list);
+                    String value =(String)method.invoke(annotation, null);
+                    if(value.equals(PointMethodName)){
+                        URL resource = this.getClass().getClassLoader().getResource("./");
+                        String path = resource.getPath()+Pointcut.replace(".","/");
+                        path = path.substring(1);
+                        getFiles(new File(path));
+                        for(File item:FileList){
+                            String class_Name = item.getAbsolutePath().split("classes")[1].substring(1);
+                            class_Name=class_Name.substring(0,class_Name.indexOf(".")).replace("\\",".");
+                            List<MyAspectIn> list = MyTools.map.get(class_Name);
+                            if(list==null) list=new ArrayList<>();
+                            MyAspectIn myAspectIn = new MyAspectIn();
+                            myAspectIn.setClassName(className);
+                            myAspectIn.setMethodName(adviceMethod.getName());
+                            myAspectIn.setAnnatatedType(annotation.annotationType().getName());
+                            list.add(myAspectIn);
+                            MyTools.map.put(class_Name,list);
+                        }
+                        FileList.clear();  //情况之前存放的文件夹
+                        break;//只要找到value一次，那么就直接break
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
-                }finally {
-                    break; //只要找到了注解中value属性的值，那么就跳出循环
                 }
+            }
+        }
+    }
+
+    public List<File> FileList=new ArrayList<>();
+
+    /**
+     * 获取文件夹下所有文件
+     * @param file 文件
+     */
+    public void getFiles(File file){
+        File[] files = file.listFiles();
+        for(File item:files){
+            if(item.isFile()&&item.getName().endsWith(".class")){
+                FileList.add(item);
+            }else if(item.isDirectory()){
+                getFiles(item);
             }
         }
     }

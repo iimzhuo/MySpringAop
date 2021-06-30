@@ -1,9 +1,14 @@
 package com.re.config;
 
+import com.re.MyAopApplication;
+import com.re.Tools.MyAspectIn;
 import com.re.Tools.MyTools;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.cglib.proxy.Enhancer;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * ctrl+I+O 重写快捷键
@@ -12,7 +17,17 @@ import org.springframework.cglib.proxy.Enhancer;
 public class MyBeanPostProcessor implements BeanPostProcessor {
     @Override
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
-        return null;
+        Object result=bean;
+        String name = bean.getClass().getName();
+        MyTools.map
+        if(MyTools.map.containsKey(name)){
+            Enhancer enhancer=new Enhancer();
+            MyInterceptor interceptor = new MyInterceptor(MyTools.map.get(name));
+            enhancer.setCallback(interceptor);
+            enhancer.setSuperclass(bean.getClass());
+            result= enhancer.create();
+        }
+        return result;
     }
 
     /**
@@ -24,13 +39,6 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
      */
     @Override
     public Object postProcessAfterInitialization(Object bean, String beanName) throws BeansException {
-        if(MyTools.map.containsKey(beanName)){
-            Enhancer enhancer=new Enhancer();
-            enhancer.setCallback(new MyInterceptor(MyTools.map.get(beanName)));
-            enhancer.setSuperclass(bean.getClass());
-            enhancer.setClassLoader(bean.getClass().getClassLoader());
-            return enhancer.create();
-        }
         return bean;
     }
 }
