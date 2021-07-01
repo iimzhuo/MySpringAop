@@ -19,7 +19,6 @@ public class MyBeanPostProcessor implements BeanPostProcessor {
     public Object postProcessBeforeInitialization(Object bean, String beanName) throws BeansException {
         Object result=bean;
         String name = bean.getClass().getName();
-        MyTools.map
         if(MyTools.map.containsKey(name)){
             Enhancer enhancer=new Enhancer();
             MyInterceptor interceptor = new MyInterceptor(MyTools.map.get(name));
